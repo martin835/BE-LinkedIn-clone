@@ -10,6 +10,8 @@ import {
   genericErrorHandler,
 } from "./errorHandler.js";
 
+
+
 const server = express();
 const port = process.env.PORT;
 
@@ -19,11 +21,9 @@ server.use(cors());
 server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
-
-//****************************** Profile EndPoints******************************* */
-
-server.use("/profile", profileRouter);
 server.use("/posts", postRouter);
+server.use("/profile", profileRouter);
+
 
 //***********************************Error handlers****************************************************/
 server.use(badRequestHandler);

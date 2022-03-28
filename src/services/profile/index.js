@@ -1,7 +1,9 @@
-import express from "express";
+import express, { application } from "express";
 import createError from "http-errors";
 import profileModel from "./model.js";
 import { getPDFReadableStream } from "./pdf-tools.js";
+import { pipeline } from "stream";
+import axios from "axios";
 
 const profileRouter = express.Router();
 
@@ -75,13 +77,35 @@ profileRouter.delete("/:userId", async (req, res, next) => {
   }
 });
 
-profileRouter.get("/:profileId/downloadPDF", (req, res, next) => {
+profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
   try {
+    const profile = await axios.get(
+      "http://localhost:3001/profile/" + req.params.profileId,
+      {
+        responseType: "application/json",
+      }
+    );
+    console.log("this is the profile", profile.data);
     // SOURCE (readable stream from pdfmake) --> DESTINATION (http response)
+
+    const image = await axios.get(profile.data.image, {
+      responseType: "arraybuffer",
+    });
+    console.log(image.data);
+
+    const imageURLParts = profile.data.image.split("/");
+    const fileName = imageURLParts[imageURLParts.length - 1];
+    const [extension] = fileName.split(".");
+    const base64 = image.data.toString("base64");
+    const base64Image = `data:image/${extension};base64,${base64}`;
 
     res.setHeader("Content-Disposition", "attachment; filename=example.pdf"); // This header tells the browser to open the "save file on disk" dialog
 
-    const source = getPDFReadableStream(getBlogReadableStream());
+    const source = getPDFReadableStream(
+      profile.data.name + " " + profile.data.surname,
+      profile.data.bio,
+      base64Image
+    );
     const destination = res;
 
     pipeline(source, destination, (err) => {
