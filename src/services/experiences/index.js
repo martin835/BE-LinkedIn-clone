@@ -26,7 +26,7 @@ experiencesRouter.post("/", async (req, res, next) => {
 
 //2 Get all experiences
 
-experiencesRouter.get("/:userId/", async (req, res, next) => {
+experiencesRouter.get("/", async (req, res, next) => {
   try {
     console.log("➡️ PING - GET ALL REQUEST");
     //console.log("REQ QUERY: ", req.query);
