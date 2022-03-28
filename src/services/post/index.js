@@ -5,6 +5,7 @@ import PostModel from "./model.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
+import Profile from "../profile/model.js";
 
 const postRouter = express.Router();
 
@@ -33,7 +34,10 @@ postRouter.get("/", async (req, res, next) => {
     //console.log("QUERY-TO-MONGO: ", q2m(req.query));
     // const mongoQuery = q2m(req.query);
 
-    const data = await ProductModel.find();
+    const data = await PostModel.find().populate({
+      path: "profile",
+      select: "name surname title image username",
+    });
 
     res.send(data);
   } catch (error) {
@@ -41,5 +45,11 @@ postRouter.get("/", async (req, res, next) => {
     next(error);
   }
 });
+
+//3 Get One Post
+
+//4 Edit a Post
+
+//5 Delete a Post
 
 export default postRouter;
