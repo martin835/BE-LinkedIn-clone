@@ -2,9 +2,19 @@ import express from "express";
 import mongoose from "mongoose";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
+
 import postRouter from "./services/post/index.js";
 import experiencesRouter from "./services/experiences/index.js";
 import profileRouter from "./services/profile/index.js";
+
+import {
+  badRequestHandler,
+  notFoundHandler,
+  genericErrorHandler,
+} from "./errorHandler.js";
+
+
+
 
 const server = express();
 const port = process.env.PORT;
@@ -15,12 +25,17 @@ server.use(cors());
 server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
-
 server.use("/posts", postRouter);
 server.use("/experiences", experiencesRouter);
 server.use("/profile", profileRouter);
 
+
+
+
 //***********************************Error handlers****************************************************/
+server.use(badRequestHandler);
+server.use(notFoundHandler);
+server.use(genericErrorHandler);
 
 mongoose.connect(process.env.MONGO_CONNECTION);
 
