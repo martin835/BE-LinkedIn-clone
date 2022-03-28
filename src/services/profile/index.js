@@ -1,9 +1,11 @@
+
 import express, { application } from "express";
 import createError from "http-errors";
 import profileModel from "./model.js";
 import { getPDFReadableStream } from "./pdf-tools.js";
 import { pipeline } from "stream";
 import axios from "axios";
+
 
 const profileRouter = express.Router();
 
@@ -106,6 +108,7 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
       profile.data.bio,
       base64Image
     );
+
     const destination = res;
 
     pipeline(source, destination, (err) => {

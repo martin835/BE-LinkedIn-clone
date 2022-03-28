@@ -2,13 +2,17 @@ import express from "express";
 import mongoose from "mongoose";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
-import profileRouter from "./services/profile/index.js";
+
 import postRouter from "./services/post/index.js";
+import experiencesRouter from "./services/experiences/index.js";
+import profileRouter from "./services/profile/index.js";
+
 import {
   badRequestHandler,
   notFoundHandler,
   genericErrorHandler,
 } from "./errorHandler.js";
+
 
 
 
@@ -22,7 +26,10 @@ server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
 server.use("/posts", postRouter);
+server.use("/experiences", experiencesRouter);
 server.use("/profile", profileRouter);
+
+
 
 
 //***********************************Error handlers****************************************************/
