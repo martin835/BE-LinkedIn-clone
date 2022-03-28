@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import listEndpoints from "express-list-endpoints";
 import cors from "cors";
 import profileRouter from "./profile/index.js";
+import postRouter from "./services/post/index.js";
+
 
 const server = express();
 const port = process.env.PORT;
@@ -14,9 +16,12 @@ server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
 
+
 //****************************** Profile EndPoints******************************* */
 
 server.use("/profile", profileRouter);
+server.use("/posts", postRouter);
+
 
 //***********************************Error handlers****************************************************/
 
