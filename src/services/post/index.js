@@ -29,7 +29,7 @@ postRouter.post("/", async (req, res, next) => {
 
 postRouter.get("/", async (req, res, next) => {
   try {
-    console.log("➡️ PING - GET ALL REQUEST");
+    console.log("🪃 PING - GET ALL POSTS REQUEST");
     //console.log("REQ QUERY: ", req.query);
     //console.log("QUERY-TO-MONGO: ", q2m(req.query));
     // const mongoQuery = q2m(req.query);
@@ -48,8 +48,63 @@ postRouter.get("/", async (req, res, next) => {
 
 //3 Get One Post
 
-//4 Edit a Post
+postRouter.get("/:postId", async (req, res, next) => {
+  try {
+    console.log("🪃 PING - GET ONE POST REQUEST");
+    //console.log("REQ QUERY: ", req.query);
+    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
+    // const mongoQuery = q2m(req.query);
 
+    const data = await PostModel.findById(req.params.postId).populate({
+      path: "profile",
+      select: "name surname title image username",
+    });
+
+    res.send(data);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+//4 Edit a Post
+postRouter.put("/:postId", async (req, res, next) => {
+  try {
+    console.log("📑 PING - EDIT Post REQUEST");
+
+    const editedPost = await PostModel.findByIdAndUpdate(
+      req.params.postId,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!editedPost) {
+      next(createError(404, `Post with id ${req.params.postId} not found.`));
+    }
+
+    res.send(editedPost);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 //5 Delete a Post
+
+postRouter.delete("/:postId", async (req, res, next) => {
+  try {
+    console.log("🧨 PING - DELETE Post REQUEST");
+    const deletePost = await PostModel.findByIdAndDelete(req.params.postId);
+    if (deletePost) {
+      res.status(204).send();
+    } else {
+      next(
+        createError(404, `Blog post with id ${req.params.postId} not found :(`)
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
 
 export default postRouter;
