@@ -7,6 +7,15 @@ import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import Profile from "../profile/model.js";
 
+const cloudinaryUploadPostImage = multer({
+  storage: new CloudinaryStorage({
+    cloudinary, // search automatically for process.env.CLOUDINARY_URL (looking for Cloudinary credentials)
+    params: {
+      folder: "post-covers",
+    },
+  }),
+}).single("post");
+
 const postRouter = express.Router();
 
 //1 POST a POST
@@ -106,5 +115,21 @@ postRouter.delete("/:postId", async (req, res, next) => {
     next(error);
   }
 });
+
+//6 Upload Post Cover
+postRouter.post(
+  "/uploadPostCover",
+  cloudinaryUploadPostImage,
+  async (req, res, next) => {
+    try {
+      console.log("📤 PING - Upload Post Cover Image REQUEST");
+      console.log("FILE in the request is: ", req.file);
+      res.send("Uploaded on Cloudinary!");
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+);
 
 export default postRouter;
