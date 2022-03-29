@@ -97,13 +97,61 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
         responseType: "application/json",
       }
     );
-    console.log("this is the profile", profile.data);
+    const experience = await axios.get(
+      "http://localhost:3001/profile/" + req.params.profileId + "/experiences",
+      {
+        responseType: "application/json",
+      }
+    );
+
+    const allExp = experience.data.map((exp) => [
+      {
+        text: exp.role,
+        style: "subheader",
+      },
+      {
+        text: exp.company,
+        style: "subheader",
+      },
+      {
+        text: exp.description,
+        style: "subheader",
+      },
+      {
+        text: exp.area,
+        style: "subheader",
+      },
+    ]);
+
+    console.log("this is allexp", allExp);
+
+    const firstExp = [
+      {
+        text: experience.data[0].role,
+        style: "subheader",
+      },
+      {
+        text: experience.data[0].company,
+        style: "subheader",
+      },
+      {
+        text: experience.data[0].description,
+        style: "subheader",
+      },
+      {
+        text: experience.data[0].area,
+        style: "subheader",
+      },
+    ];
+
+    // console.log("this is the exp", experience.data);
     // SOURCE (readable stream from pdfmake) --> DESTINATION (http response)
 
     const image = await axios.get(profile.data.image, {
       responseType: "arraybuffer",
     });
-    console.log(image.data);
+
+    allExp.unshift(["Role", "Company", "Description", "Area"]);
 
     const imageURLParts = profile.data.image.split("/");
     const fileName = imageURLParts[imageURLParts.length - 1];
@@ -116,6 +164,8 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
     const source = getPDFReadableStream(
       profile.data.name + " " + profile.data.surname,
       profile.data.bio,
+      allExp,
+
       base64Image
     );
 
@@ -128,6 +178,25 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
     next(error);
   }
 });
+
+// [
+// {
+//   text: "role",
+//   style: "subheader",
+// },
+//   {
+//     text: "role",
+//     style: "subheader",
+//   },
+//   {
+//     text: "role",
+//     style: "subheader",
+//   },
+//   {
+//     text: "role",
+//     style: "subheader",
+//   },
+// ],
 
 profileRouter.post(
   "/:userId/upload",

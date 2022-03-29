@@ -1,8 +1,6 @@
 import PdfPrinter from "pdfmake";
 
-
-export const getPDFReadableStream = (name, bio, imageUrl) => {
-
+export const getPDFReadableStream = (name, bio, experiences, imageUrl) => {
   const fonts = {
     Helvetica: {
       normal: "Helvetica",
@@ -15,9 +13,8 @@ export const getPDFReadableStream = (name, bio, imageUrl) => {
   const docDefinition = {
     content: [
       {
-
         image: imageUrl,
-        fit: [520, 520],
+        fit: [350, 350],
       },
       {
         text: name,
@@ -26,7 +23,18 @@ export const getPDFReadableStream = (name, bio, imageUrl) => {
       {
         text: bio,
         style: "header2",
+      },
+      {
+        text: "experiences",
+        style: "header",
+      },
 
+      {
+        style: "tableExample",
+        table: {
+          widths: [100, "*", 200, "*"],
+          body: experiences,
+        },
       },
     ],
     styles: {
@@ -35,7 +43,9 @@ export const getPDFReadableStream = (name, bio, imageUrl) => {
         bold: true,
 
         margin: [8, 8],
-
+      },
+      tableExample: {
+        margin: [0, 5, 0, 15],
       },
     },
     defaultStyle: {
