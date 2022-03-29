@@ -19,11 +19,18 @@ const cloudinaryUploadPostImage = multer({
 const postRouter = express.Router();
 
 //1 POST a POST
-postRouter.post("/", async (req, res, next) => {
+postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
+    console.log("The request is: ", req);
+    console.log("FILE in the request is: ", req.file);
+    console.log("New file URL should be req.file.path: ", req.file.path);
 
-    const newPost = new PostModel(req.body);
+    const newPost = new PostModel({
+      text: req.body.text,
+      profile: req.body.profile,
+      image: req.file.path,
+    });
 
     await newPost.save();
 
