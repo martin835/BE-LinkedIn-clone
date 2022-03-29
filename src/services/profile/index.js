@@ -135,8 +135,9 @@ profileRouter.post(
   async (req, res, next) => {
     try {
       const user = await profileModel.findByIdAndUpdate(
-        req.params.userId,
-        req.body
+        req.params.experienceId,
+        { image: req.file.path },
+        { new: true }
       );
 
       if (user) {
