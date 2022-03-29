@@ -22,20 +22,21 @@ const postRouter = express.Router();
 postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
-    console.log("The request is: ", req);
-    console.log("FILE in the request is: ", req.file);
-    //console.log("New file URL should be req.file.path: ", req.file.path);
+    // console.log("The request is: ", req);
+    // console.log("FILE in the request is: ", req.file);
+    // console.log("New file URL should be req.file.path: ", req.file.path);
 
     if (req.file) {
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
         image: req.file.path,
+        cloudinary_id: req.file.filename,
       });
 
       await newPost.save();
 
-      res.send(newPost._id);
+      res.send(newPost);
     } else {
       const newPost = new PostModel({
         text: req.body.text,
@@ -45,7 +46,7 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
 
       await newPost.save();
 
-      res.send(newPost._id);
+      res.send(newPost);
     }
   } catch (error) {
     console.log(error);
@@ -121,6 +122,10 @@ postRouter.put("/:postId", async (req, res, next) => {
 postRouter.delete("/:postId", async (req, res, next) => {
   try {
     console.log("🧨 PING - DELETE Post REQUEST");
+    const postToDelete = await PostModel.findById(req.params.postId);
+    console.log(postToDelete);
+    await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+
     const deletePost = await PostModel.findByIdAndDelete(req.params.postId);
     if (deletePost) {
       res.status(204).send();
@@ -142,9 +147,9 @@ postRouter.post(
   async (req, res, next) => {
     try {
       console.log("📤 PING - Upload Post Cover Image REQUEST");
-      console.log("FILE in the request is: ", req.file);
+      /*       console.log("FILE in the request is: ", req.file);
       console.log("New file URL should be req.file.path: ", req.file.path);
-      console.log("postId is: ", req.params.postId);
+      console.log("postId is: ", req.params.postId); */
 
       const editedPost = await PostModel.findByIdAndUpdate(
         req.params.postId,

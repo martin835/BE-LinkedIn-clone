@@ -7,6 +7,7 @@ const postSchema = new Schema(
   {
     text: { type: String, required: true },
     image: { type: String },
+    cloudinary_id: { type: String },
     profile: {
       type: mongoose.Types.ObjectId,
       ref: "Profile",
