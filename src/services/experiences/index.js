@@ -68,7 +68,7 @@ experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
 
     const source = JSON.stringify(experience.data);
 
-    const transform = new json2csv.Transform({ fields: ["role", "company", "description", "startDate", "endDate"] })
+    const transform = new json2csv.Transform({ fields: ["_id","role", "company", "description", "startDate", "endDate"] })
 
     const destination = res
 
