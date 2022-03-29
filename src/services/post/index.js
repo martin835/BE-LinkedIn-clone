@@ -118,13 +118,22 @@ postRouter.delete("/:postId", async (req, res, next) => {
 
 //6 Upload Post Cover
 postRouter.post(
-  "/uploadPostCover",
+  "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
     try {
       console.log("📤 PING - Upload Post Cover Image REQUEST");
       console.log("FILE in the request is: ", req.file);
-      res.send("Uploaded on Cloudinary!");
+      console.log("New file URL should be req.file.path: ", req.file.path);
+      console.log("postId is: ", req.params.postId);
+
+      const editedPost = await PostModel.findByIdAndUpdate(
+        req.params.postId,
+        { image: req.file.path },
+        { new: true, runValidators: true }
+      );
+
+      res.send(editedPost);
     } catch (error) {
       console.log(error);
       next(error);
