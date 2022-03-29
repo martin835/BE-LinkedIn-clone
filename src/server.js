@@ -13,23 +13,33 @@ import {
   genericErrorHandler,
 } from "./errorHandler.js";
 
-
-
-
 const server = express();
+const whitelist = [process.env.FE_DEV_URL, process.env.FE_PROD_URL];
 const port = process.env.PORT;
-
 //***********************************Middlewares*******************************************************/
 
-server.use(cors());
+server.use(
+  cors({
+    origin: function (origin, next) {
+      //cors is a global middleware - for each request
+      console.log("ORIGIN: ", origin);
+      // 0 \\ 0
+      if (origin === undefined || whitelist.indexOf(origin) !== -1) {
+        console.log("ORIGIN ALLOWED");
+        next(null, true);
+      } else {
+        console.log("ORIGIN NOT ALLOWED");
+        next(new Error("CORS ERROR!"));
+      }
+    },
+  })
+);
+
 server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
 server.use("/posts", postRouter);
 server.use("/profile", [profileRouter, experiencesRouter]);
-
-
-
 
 //***********************************Error handlers****************************************************/
 server.use(badRequestHandler);
