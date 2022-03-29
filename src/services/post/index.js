@@ -22,8 +22,8 @@ const postRouter = express.Router();
 postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
-    console.log("The request is: ", req);
-    console.log("FILE in the request is: ", req.file);
+    // console.log("The request is: ", req);
+    // console.log("FILE in the request is: ", req.file);
     // console.log("New file URL should be req.file.path: ", req.file.path);
 
     if (req.file) {
@@ -147,9 +147,9 @@ postRouter.post(
   async (req, res, next) => {
     try {
       console.log("📤 PING - Upload Post Cover Image REQUEST");
-      console.log("FILE in the request is: ", req.file);
+      /*       console.log("FILE in the request is: ", req.file);
       console.log("New file URL should be req.file.path: ", req.file.path);
-      console.log("postId is: ", req.params.postId);
+      console.log("postId is: ", req.params.postId); */
 
       const editedPost = await PostModel.findByIdAndUpdate(
         req.params.postId,
