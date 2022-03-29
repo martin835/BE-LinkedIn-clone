@@ -8,7 +8,6 @@ import multer from "multer";
 
 const experiencesRouter = express.Router();
 
-//1 POST an experience
 experiencesRouter.post("/", async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
@@ -18,27 +17,6 @@ experiencesRouter.post("/", async (req, res, next) => {
     await newExperience.save();
 
     res.send(newExperience._id);
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-});
-
-//2 Get all experiences
-
-experiencesRouter.get("/", async (req, res, next) => {
-  try {
-    console.log("➡️ PING - GET ALL REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
-    const data = await ExperiencesModel.find().populate({
-      path: "user",
-      select: "name surname email bio title area image",
-    });
-
-    res.send(data);
   } catch (error) {
     console.log(error);
     next(error);
