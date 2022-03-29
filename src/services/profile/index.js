@@ -123,30 +123,6 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
       },
     ]);
 
-    console.log("this is allexp", allExp);
-
-    const firstExp = [
-      {
-        text: experience.data[0].role,
-        style: "subheader",
-      },
-      {
-        text: experience.data[0].company,
-        style: "subheader",
-      },
-      {
-        text: experience.data[0].description,
-        style: "subheader",
-      },
-      {
-        text: experience.data[0].area,
-        style: "subheader",
-      },
-    ];
-
-    // console.log("this is the exp", experience.data);
-    // SOURCE (readable stream from pdfmake) --> DESTINATION (http response)
-
     const image = await axios.get(profile.data.image, {
       responseType: "arraybuffer",
     });
@@ -178,25 +154,6 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
     next(error);
   }
 });
-
-// [
-// {
-//   text: "role",
-//   style: "subheader",
-// },
-//   {
-//     text: "role",
-//     style: "subheader",
-//   },
-//   {
-//     text: "role",
-//     style: "subheader",
-//   },
-//   {
-//     text: "role",
-//     style: "subheader",
-//   },
-// ],
 
 profileRouter.post(
   "/:userId/upload",
