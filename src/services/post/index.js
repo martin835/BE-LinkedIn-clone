@@ -24,17 +24,29 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
     console.log("📨 PING - POST REQUEST");
     console.log("The request is: ", req);
     console.log("FILE in the request is: ", req.file);
-    console.log("New file URL should be req.file.path: ", req.file.path);
+    //console.log("New file URL should be req.file.path: ", req.file.path);
 
-    const newPost = new PostModel({
-      text: req.body.text,
-      profile: req.body.profile,
-      image: req.file.path,
-    });
+    if (req.file) {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: req.file.path,
+      });
 
-    await newPost.save();
+      await newPost.save();
 
-    res.send(newPost._id);
+      res.send(newPost._id);
+    } else {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: "http://placeimg.com/640/480",
+      });
+
+      await newPost.save();
+
+      res.send(newPost._id);
+    }
   } catch (error) {
     console.log(error);
     next(error);
