@@ -2,14 +2,40 @@ import express from "express";
 import createError from "http-errors";
 import q2m from "query-to-mongo";
 import ExperiencesModel from "./model.js";
+import ProfileModel from "../profile/model.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
+import { pipeline } from "stream";
+import json2csv from 'json2csv';
+import axios from "axios";
+
 
 const experiencesRouter = express.Router();
 
-//1 POST an experience
-experiencesRouter.post("/", async (req, res, next) => {
+const cloudStorageProd = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "M6-Benchmark-experiences",
+  },
+})
+const cloudMulterProd = multer({ storage: cloudStorageProd })
+
+
+experiencesRouter.get("/:userId/experiences", async (req, res, next) => {
+  try {
+    const experiences = await ExperiencesModel.find().where("user").equals(req.params.userId).populate({ path: "user" });
+    if (experiences) res.send(experiences);
+    else {
+      next(createError(404, `Experience with id ${req.params.experienceId} not found!`));
+    }
+  } catch (error) {
+    next(error);
+    console.log(error);
+  }
+});
+
+experiencesRouter.post("/:userId/experiences", async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
 
@@ -17,37 +43,16 @@ experiencesRouter.post("/", async (req, res, next) => {
 
     await newExperience.save();
 
-    res.send(newExperience._id);
+    res.send(newExperience);
   } catch (error) {
     console.log(error);
     next(error);
   }
 });
 
-//2 Get all experiences
-
-experiencesRouter.get("/:userId/", async (req, res, next) => {
+experiencesRouter.get("/:userId/experiences/:experienceId", async (req, res, next) => {
   try {
-    console.log("➡️ PING - GET ALL REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
-    const data = await ExperiencesModel.find().populate({
-      path: "user",
-      select: "name surname email bio title area image",
-    });
-
-    res.send(data);
-  } catch (error) {
-    console.log(error);
-    next(error);
-  }
-});
-
-experiencesRouter.get("/:experienceId", async (req, res, next) => {
-  try {
-    const experience = await experiencesModel.findById(req.params.experienceId);
+    const experience = await ExperiencesModel.findById(req.params.experienceId).populate({ path: "user" });
     if (experience) res.send(experience);
     else {
       next(createError(404, `Experience with id ${req.params.experienceId} not found!`));
@@ -58,9 +63,9 @@ experiencesRouter.get("/:experienceId", async (req, res, next) => {
   }
 });
 
-experiencesRouter.put("/:experienceId", async (req, res, next) => {
+experiencesRouter.put("/:userId/experiences/:experienceId", async (req, res, next) => {
   try {
-    const updatedExperience = await experiencesModel.findByIdAndUpdate(
+    const updatedExperience = await ExperiencesModel.findByIdAndUpdate(
       req.params.experienceId,
       req.body,
       { new: true, runValidators: true }
@@ -76,9 +81,9 @@ experiencesRouter.put("/:experienceId", async (req, res, next) => {
   }
 });
 
-experiencesRouter.delete("/:experienceId", async (req, res, next) => {
+experiencesRouter.delete("/:userId/experiences/:experienceId", async (req, res, next) => {
   try {
-    const deletedExperience = await experiencesModel.findByIdAndDelete(
+    const deletedExperience = await ExperiencesModel.findByIdAndDelete(
       req.params.experienceId
     );
     if (deletedExperience) res.status(204).send();
@@ -91,17 +96,51 @@ experiencesRouter.delete("/:experienceId", async (req, res, next) => {
   }
 });
 
-// experiencesRouter.get("/:profileId/downloadPDF", (req, res, next) => {
-//   try {
-//     res.setHeader("Content-Disposition", "attachment; filename=example.pdf");
-//     const source = getPDFReadableStream(getBlogReadableStream());
-//     const destination = res;
+experiencesRouter.post("/:userId/experiences/:experienceId/picture", cloudMulterProd.single("image"), async (req, res, next) => {
+  try {
+    const experience = await ExperiencesModel.findByIdAndUpdate(req.params.experienceId, { image: req.file.path }, { new: true });
 
-//     pipeline(source, destination, (err) => {
-//       console.log(err);
-//     });
+    res.send(experience);
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+// experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
+//   try {
+
+//     console.log(req.params.userId);
+
+//      res.setHeader("Content-Disposition", "attachment; filename=experiences.csv")
+//     const experience = await axios.get(
+//       `http://localhost:3001/profile/${req.params.userId}/experiences`,
+//       {
+//         responseType: "application/json",
+//       }
+//     );
+
+//     console.log(experience.data)
+
+//     res.send(experience.data);
+
+//     const experienceData =
+//       { role: experience.data.role, company: experience.data.company, startDate: experience.data.startDate, endDate: experience.data.endDate, description: experience.data.description, image: experience.data.image }
+
+
+//     const source = experienceData;
+
+//     const transform = new json2csv.Transform({ fields: ["role", "company", "description", "startDate", "endDate"] })
+
+//     const destination = res
+
+//     pipeline(source, transform, destination, err => {
+//       console.log(err)
+//     })
+
 //   } catch (error) {
 //     next(error);
+//     console.log(error);
 //   }
 // });
 

@@ -26,8 +26,7 @@ server.use(express.json());
 
 //***********************************Endpoints*********************************************************/
 server.use("/posts", postRouter);
-server.use("/experiences", experiencesRouter);
-server.use("/profile", profileRouter);
+server.use("/profile", [profileRouter, experiencesRouter]);
 
 
 
