@@ -19,15 +19,34 @@ const cloudinaryUploadPostImage = multer({
 const postRouter = express.Router();
 
 //1 POST a POST
-postRouter.post("/", async (req, res, next) => {
+postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
+    console.log("The request is: ", req);
+    console.log("FILE in the request is: ", req.file);
+    //console.log("New file URL should be req.file.path: ", req.file.path);
 
-    const newPost = new PostModel(req.body);
+    if (req.file) {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: req.file.path,
+      });
 
-    await newPost.save();
+      await newPost.save();
 
-    res.send(newPost._id);
+      res.send(newPost._id);
+    } else {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: "http://placeimg.com/640/480",
+      });
+
+      await newPost.save();
+
+      res.send(newPost._id);
+    }
   } catch (error) {
     console.log(error);
     next(error);
@@ -118,13 +137,22 @@ postRouter.delete("/:postId", async (req, res, next) => {
 
 //6 Upload Post Cover
 postRouter.post(
-  "/uploadPostCover",
+  "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
     try {
       console.log("📤 PING - Upload Post Cover Image REQUEST");
       console.log("FILE in the request is: ", req.file);
-      res.send("Uploaded on Cloudinary!");
+      console.log("New file URL should be req.file.path: ", req.file.path);
+      console.log("postId is: ", req.params.postId);
+
+      const editedPost = await PostModel.findByIdAndUpdate(
+        req.params.postId,
+        { image: req.file.path },
+        { new: true, runValidators: true }
+      );
+
+      res.send(editedPost);
     } catch (error) {
       console.log(error);
       next(error);
