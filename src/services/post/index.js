@@ -5,7 +5,7 @@ import PostModel from "./model.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import Profile from "../profile/model.js";
+import ProfileModel from "../profile/model.js";
 
 const cloudinaryUploadPostImage = multer({
   storage: new CloudinaryStorage({
@@ -21,10 +21,6 @@ const postRouter = express.Router();
 //1 POST a POST
 postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
-    console.log("📨 PING - POST REQUEST");
-    // console.log("The request is: ", req);
-    // console.log("FILE in the request is: ", req.file);
-    // console.log("New file URL should be req.file.path: ", req.file.path);
 
     if (req.file) {
       const newPost = new PostModel({
@@ -54,15 +50,8 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   }
 });
 
-//2 Get all POSTS
-
 postRouter.get("/", async (req, res, next) => {
   try {
-    console.log("🪃 PING - GET ALL POSTS REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
     const data = await PostModel.find().populate({
       path: "profile",
       select: "name surname title image username",
@@ -75,15 +64,8 @@ postRouter.get("/", async (req, res, next) => {
   }
 });
 
-//3 Get One Post
-
 postRouter.get("/:postId", async (req, res, next) => {
   try {
-    console.log("🪃 PING - GET ONE POST REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
     const data = await PostModel.findById(req.params.postId).populate({
       path: "profile",
       select: "name surname title image username",
@@ -96,11 +78,8 @@ postRouter.get("/:postId", async (req, res, next) => {
   }
 });
 
-//4 Edit a Post
 postRouter.put("/:postId", async (req, res, next) => {
   try {
-    console.log("📑 PING - EDIT Post REQUEST");
-
     const editedPost = await PostModel.findByIdAndUpdate(
       req.params.postId,
       req.body,
@@ -117,11 +96,10 @@ postRouter.put("/:postId", async (req, res, next) => {
     next(error);
   }
 });
-//5 Delete a Post
 
 postRouter.delete("/:postId", async (req, res, next) => {
   try {
-    console.log("🧨 PING - DELETE Post REQUEST");
+
     const postToDelete = await PostModel.findById(req.params.postId);
     console.log(postToDelete);
 
@@ -143,16 +121,12 @@ postRouter.delete("/:postId", async (req, res, next) => {
   }
 });
 
-//6 Upload Post Cover
 postRouter.post(
   "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
     try {
-      console.log("📤 PING - Upload Post Cover Image REQUEST");
-      /*       console.log("FILE in the request is: ", req.file);
-      console.log("New file URL should be req.file.path: ", req.file.path);
-      console.log("postId is: ", req.params.postId); */
+      res.send("Uploaded on Cloudinary!");
 
       const editedPost = await PostModel.findByIdAndUpdate(
         req.params.postId,
@@ -161,11 +135,30 @@ postRouter.post(
       );
 
       res.send(editedPost);
+
     } catch (error) {
       console.log(error);
       next(error);
     }
   }
 );
+
+postRouter.post("/:postId/likes", async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    const isLiked = await PostModel.findOne({ _id: req.params.postId, likes: id });
+    if (isLiked) {
+      await PostModel.findByIdAndUpdate(req.params.postId, { $pull: { likes: id } });
+      res.send("Unliked");
+    }
+    if (!isLiked) {
+      await PostModel.findByIdAndUpdate(req.params.postId, { $push: { likes: id } });
+      res.send("Liked");
+    }
+    console.log(!isLiked)
+  } catch (error) {
+    res.send(500).send({ message: error.message });
+  }
+});
 
 export default postRouter;
