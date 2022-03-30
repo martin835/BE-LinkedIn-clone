@@ -5,7 +5,7 @@ import PostModel from "./model.js";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
-import Profile from "../profile/model.js";
+import ProfileModel from "../profile/model.js";
 
 const cloudinaryUploadPostImage = multer({
   storage: new CloudinaryStorage({
@@ -20,12 +20,8 @@ const postRouter = express.Router();
 
 //1 POST a POST
 postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
+  console.log("📨 PING - POST REQUEST");
   try {
-    console.log("📨 PING - POST REQUEST");
-    // console.log("The request is: ", req);
-    // console.log("FILE in the request is: ", req.file);
-    // console.log("New file URL should be req.file.path: ", req.file.path);
-
     if (req.file) {
       const newPost = new PostModel({
         text: req.body.text,
@@ -55,14 +51,9 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
 });
 
 //2 Get all POSTS
-
 postRouter.get("/", async (req, res, next) => {
+  console.log("🪃 PING - GET ALL POSTS REQUEST");
   try {
-    console.log("🪃 PING - GET ALL POSTS REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
     const data = await PostModel.find().populate({
       path: "profile",
       select: "name surname title image username",
@@ -76,14 +67,9 @@ postRouter.get("/", async (req, res, next) => {
 });
 
 //3 Get One Post
-
 postRouter.get("/:postId", async (req, res, next) => {
+  console.log("🪃 PING - GET ONE POST REQUEST");
   try {
-    console.log("🪃 PING - GET ONE POST REQUEST");
-    //console.log("REQ QUERY: ", req.query);
-    //console.log("QUERY-TO-MONGO: ", q2m(req.query));
-    // const mongoQuery = q2m(req.query);
-
     const data = await PostModel.findById(req.params.postId).populate({
       path: "profile",
       select: "name surname title image username",
@@ -98,9 +84,8 @@ postRouter.get("/:postId", async (req, res, next) => {
 
 //4 Edit a Post
 postRouter.put("/:postId", async (req, res, next) => {
+  console.log("📑 PING - EDIT Post REQUEST");
   try {
-    console.log("📑 PING - EDIT Post REQUEST");
-
     const editedPost = await PostModel.findByIdAndUpdate(
       req.params.postId,
       req.body,
@@ -117,14 +102,17 @@ postRouter.put("/:postId", async (req, res, next) => {
     next(error);
   }
 });
-//5 Delete a Post
 
+//5 Delete a Post
 postRouter.delete("/:postId", async (req, res, next) => {
+  console.log("🧨 PING - DELETE Post REQUEST");
   try {
-    console.log("🧨 PING - DELETE Post REQUEST");
     const postToDelete = await PostModel.findById(req.params.postId);
     console.log(postToDelete);
-    await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+
+    if (postToDelete.cloudinary_id) {
+      await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+    }
 
     const deletePost = await PostModel.findByIdAndDelete(req.params.postId);
     if (deletePost) {
@@ -141,19 +129,16 @@ postRouter.delete("/:postId", async (req, res, next) => {
 });
 
 //6 Upload Post Cover
+
 postRouter.post(
   "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
+    console.log("📤 PING - Upload Post Cover Image REQUEST");
     try {
-      console.log("📤 PING - Upload Post Cover Image REQUEST");
-      /*       console.log("FILE in the request is: ", req.file);
-      console.log("New file URL should be req.file.path: ", req.file.path);
-      console.log("postId is: ", req.params.postId); */
-
       const editedPost = await PostModel.findByIdAndUpdate(
         req.params.postId,
-        { image: req.file.path },
+        { image: req.file.path, cloudinary_id: req.file.filename },
         { new: true, runValidators: true }
       );
 
@@ -164,5 +149,142 @@ postRouter.post(
     }
   }
 );
+
+postRouter.post("/:postId/likes", async (req, res, next) => {
+  try {
+    const { id } = req.body;
+    const isLiked = await PostModel.findOne({
+      _id: req.params.postId,
+      likes: id,
+    });
+    if (isLiked) {
+      await PostModel.findByIdAndUpdate(req.params.postId, {
+        $pull: { likes: id },
+      });
+      res.send("Unliked");
+    }
+    if (!isLiked) {
+      await PostModel.findByIdAndUpdate(req.params.postId, {
+        $push: { likes: id },
+      });
+      res.send("Liked");
+    }
+    console.log(!isLiked);
+  } catch (error) {
+    res.send(500).send({ message: error.message });
+  }
+});
+
+//6  POST a COMMENT to a Post
+postRouter.post("/:postId/comments", async (req, res, next) => {
+  try {
+    const newComment = {
+      ...req.body,
+      commentDate: new Date(),
+    };
+
+    const post = await PostModel.findByIdAndUpdate(
+      req.params.postId,
+      { $push: { comments: newComment } },
+      { new: true, runValidators: true }
+    );
+
+    if (post) res.send(post);
+    if (!post)
+      next(createError(404, `Post with id ${req.params.postId} not found.`));
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+//7 GET COMMENTS for  a BlogPost
+postRouter.get("/:postId/comments", async (req, res, next) => {
+  try {
+    const comments = await PostModel.findById(req.params.postId);
+    if (comments) res.send(comments.comments);
+    if (!comments)
+      next(
+        createError(404, `Blog post with id ${req.params.postId} not found!`)
+      );
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+//8 GET ONE COMMENT from a BlogPost
+postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
+  try {
+    const post = await PostModel.findById(req.params.postId);
+    if (post) {
+      const comment = post.comments.find(
+        (comment) => comment._id.toString() === req.params.commentId
+      );
+
+      if (comment) res.send(comment);
+      if (!comment)
+        next(
+          createError(404, `Comment with id ${req.params.commentId} not found!`)
+        );
+    }
+    if (!post)
+      next(createError(404, `Post with id ${req.params.postId} not found!`));
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+//9 EDIT a COMMENT in a BlogPost --> fix this
+postRouter.put("/:postId/comments/:commentId", async (req, res, next) => {
+  try {
+    const post = await PostModel.findById(req.params.postId);
+    if (post) {
+      const index = post.comments.findIndex(
+        (comment) => comment._id.toString() === req.params.commentId
+      );
+      if (index !== -1) {
+        post.comments[index] = {
+          ...post.comments[index].toObject(),
+          ...req.body,
+          commentDate: new Date(),
+        };
+
+        await post.save();
+        res.status(200).send(post);
+      }
+      if (index == -1)
+        next(
+          createError(404, `Comment with id ${req.params.commentId} not found!`)
+        );
+    }
+    if (!post) {
+      next(
+        createError(404, `Blog post with id ${req.params.postId} not found!`)
+      );
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+});
+
+//10 DELETE A COMMENT in a BlogPost
+postRouter.delete("/:postId/comments/:commentId", async (req, res, next) => {
+  try {
+    const post = await PostModel.findByIdAndUpdate(
+      req.params.postId,
+      { $pull: { comments: { _id: req.params.commentId } } },
+      { new: true }
+    );
+    if (post) {
+      res.send(post);
+    }
+    if (!post)
+      next(createError(404, `Post with id ${req.params.postId} not found!`));
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 export default postRouter;

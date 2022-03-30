@@ -13,6 +13,22 @@ const postSchema = new Schema(
       ref: "Profile",
       required: true,
     },
+    comments: [
+      {
+        comment: { type: String, required: true },
+        commentDate: { type: Date, required: true },
+      },
+    ],
+    likes: {
+      default: [],
+      type: [
+        {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Profile",
+          _id: false
+        },
+      ],
+    },
   },
   {
     timestamps: true,
