@@ -1,14 +1,24 @@
-
 import express, { application } from "express";
 import createError from "http-errors";
 import profileModel from "./model.js";
 import { getPDFReadableStream } from "./pdf-tools.js";
 import { pipeline } from "stream";
 import axios from "axios";
-
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
 
 
 const profileRouter = express.Router();
+
+const cloudinaryUploader = multer({
+  storage: new CloudinaryStorage({
+    cloudinary, // search automatically for process.env.CLOUDINARY_URL (looking for Cloudinary credentials)
+    params: {
+      folder: "usersPics",
+    },
+  }),
+}).single("image");
 
 profileRouter.get("/", async (req, res, next) => {
   try {
@@ -88,13 +98,37 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
         responseType: "application/json",
       }
     );
-    console.log("this is the profile", profile.data);
-    // SOURCE (readable stream from pdfmake) --> DESTINATION (http response)
+    const experience = await axios.get(
+      "http://localhost:3001/profile/" + req.params.profileId + "/experiences",
+      {
+        responseType: "application/json",
+      }
+    );
+
+    const allExp = experience.data.map((exp) => [
+      {
+        text: exp.role,
+        style: "subheader",
+      },
+      {
+        text: exp.company,
+        style: "subheader",
+      },
+      {
+        text: exp.description,
+        style: "subheader",
+      },
+      {
+        text: exp.area,
+        style: "subheader",
+      },
+    ]);
 
     const image = await axios.get(profile.data.image, {
       responseType: "arraybuffer",
     });
-    console.log(image.data);
+
+    allExp.unshift(["Role", "Company", "Description", "Area"]);
 
     const imageURLParts = profile.data.image.split("/");
     const fileName = imageURLParts[imageURLParts.length - 1];
@@ -107,6 +141,8 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
     const source = getPDFReadableStream(
       profile.data.name + " " + profile.data.surname,
       profile.data.bio,
+      allExp,
+
       base64Image
     );
 
@@ -120,6 +156,26 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
   }
 });
 
+profileRouter.post(
+  "/:userId/upload",
+  cloudinaryUploader,
+  async (req, res, next) => {
+    try {
+      const user = await profileModel.findByIdAndUpdate(
+        req.params.userId,
+        { image: req.file.path },
+        { new: true }
+      );
 
+      if (user) {
+        res.send("Uploaded on Cloudinary!");
+      } else {
+        next(createError(404, `user with id ${req.params.userId} not found!`));
+      }
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 export default profileRouter;

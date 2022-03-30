@@ -18,12 +18,32 @@ const cloudinaryUploadPostImage = multer({
 
 const postRouter = express.Router();
 
-postRouter.post("/", async (req, res, next) => {
+//1 POST a POST
+postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   try {
-    const newPost = new PostModel(req.body);
-    await newPost.save();
 
-    res.send(newPost._id);
+    if (req.file) {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: req.file.path,
+        cloudinary_id: req.file.filename,
+      });
+
+      await newPost.save();
+
+      res.send(newPost);
+    } else {
+      const newPost = new PostModel({
+        text: req.body.text,
+        profile: req.body.profile,
+        image: "http://placeimg.com/640/480",
+      });
+
+      await newPost.save();
+
+      res.send(newPost);
+    }
   } catch (error) {
     console.log(error);
     next(error);
@@ -79,6 +99,14 @@ postRouter.put("/:postId", async (req, res, next) => {
 
 postRouter.delete("/:postId", async (req, res, next) => {
   try {
+
+    const postToDelete = await PostModel.findById(req.params.postId);
+    console.log(postToDelete);
+
+    if (postToDelete.cloudinary_id) {
+      await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+    }
+
     const deletePost = await PostModel.findByIdAndDelete(req.params.postId);
     if (deletePost) {
       res.status(204).send();
@@ -94,11 +122,20 @@ postRouter.delete("/:postId", async (req, res, next) => {
 });
 
 postRouter.post(
-  "/uploadPostCover",
+  "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
     try {
       res.send("Uploaded on Cloudinary!");
+
+      const editedPost = await PostModel.findByIdAndUpdate(
+        req.params.postId,
+        { image: req.file.path },
+        { new: true, runValidators: true }
+      );
+
+      res.send(editedPost);
+
     } catch (error) {
       console.log(error);
       next(error);
@@ -123,58 +160,5 @@ postRouter.post("/:postId/likes", async (req, res, next) => {
     res.send(500).send({ message: error.message });
   }
 });
-
-// postRouter.post("/:postId/likes", async (req, res, next) => {
-//   try {
-//     const { userId } = req.body;
-
-//     const post = await PostModel.findById(req.params.postId);
-//     if (!post)
-//       return next(
-//         createError(404, `Post with id ${req.params.postId} not found`)
-//       );
-
-//     console.log(post)
-
-//     const user = await ProfileModel.findById(userId);
-//     if (!user)
-//       return next(createError(404, `User with id ${userId} not found`));
-
-//     const isPostLiked = await PostModel.findOne({
-//       _id: req.params.postId,
-//       "likes.userId": user._id,
-//     });
-
-//     console.log(isPostLiked);
-
-//     if (isPostLiked) {
-
-//       const modifiedLikes = await PostModel.findOneAndUpdate(
-//         {
-//           _id: req.params.postId,
-//         },
-//         {
-//           $pull: { likes: { userId: userId } },
-//         },
-//         {
-//           new: true,
-//         }
-//       );
-//       res.send(modifiedLikes);
-//     } else {
-//       const modifiedLikes = await PostModel.findOneAndUpdate(
-//         { _id: req.params.postId },
-//         { $push: { likes: { userId: user._id } } },
-//         {
-//           new: true,
-//           upsert: true,
-//         }
-//       );
-//       res.send(modifiedLikes);
-//     }
-//   } catch (error) {
-//     next(error);
-//   }
-// });
 
 export default postRouter;
