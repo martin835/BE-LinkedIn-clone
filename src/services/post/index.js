@@ -124,7 +124,10 @@ postRouter.delete("/:postId", async (req, res, next) => {
     console.log("🧨 PING - DELETE Post REQUEST");
     const postToDelete = await PostModel.findById(req.params.postId);
     console.log(postToDelete);
-    await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+
+    if (postToDelete.cloudinary_id) {
+      await cloudinary.uploader.destroy(postToDelete.cloudinary_id);
+    }
 
     const deletePost = await PostModel.findByIdAndDelete(req.params.postId);
     if (deletePost) {
