@@ -20,6 +20,7 @@ const postRouter = express.Router();
 
 //1 POST a POST
 postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
+  console.log("📨 PING - POST REQUEST");
   try {
     if (req.file) {
       const newPost = new PostModel({
@@ -49,7 +50,9 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
   }
 });
 
+//2 Get all POSTS
 postRouter.get("/", async (req, res, next) => {
+  console.log("🪃 PING - GET ALL POSTS REQUEST");
   try {
     const data = await PostModel.find().populate({
       path: "profile",
@@ -63,7 +66,9 @@ postRouter.get("/", async (req, res, next) => {
   }
 });
 
+//3 Get One Post
 postRouter.get("/:postId", async (req, res, next) => {
+  console.log("🪃 PING - GET ONE POST REQUEST");
   try {
     const data = await PostModel.findById(req.params.postId).populate({
       path: "profile",
@@ -77,7 +82,9 @@ postRouter.get("/:postId", async (req, res, next) => {
   }
 });
 
+//4 Edit a Post
 postRouter.put("/:postId", async (req, res, next) => {
+  console.log("📑 PING - EDIT Post REQUEST");
   try {
     const editedPost = await PostModel.findByIdAndUpdate(
       req.params.postId,
@@ -96,7 +103,9 @@ postRouter.put("/:postId", async (req, res, next) => {
   }
 });
 
+//5 Delete a Post
 postRouter.delete("/:postId", async (req, res, next) => {
+  console.log("🧨 PING - DELETE Post REQUEST");
   try {
     const postToDelete = await PostModel.findById(req.params.postId);
     console.log(postToDelete);
@@ -119,13 +128,14 @@ postRouter.delete("/:postId", async (req, res, next) => {
   }
 });
 
+//6 Upload Post Cover
+
 postRouter.post(
   "/:postId/uploadPostCover",
   cloudinaryUploadPostImage,
   async (req, res, next) => {
+    console.log("📤 PING - Upload Post Cover Image REQUEST");
     try {
-      res.send("Uploaded on Cloudinary!");
-
       const editedPost = await PostModel.findByIdAndUpdate(
         req.params.postId,
         { image: req.file.path, cloudinary_id: req.file.filename },
