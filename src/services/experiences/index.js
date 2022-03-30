@@ -50,6 +50,38 @@ experiencesRouter.post("/:userId/experiences", async (req, res, next) => {
   }
 });
 
+experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
+  try {
+
+    console.log(req.params.userId);
+
+     res.setHeader("Content-Disposition", "attachment; filename=experiences.csv")
+    const experience = await axios.get(
+      `http://localhost:3001/profile/${req.params.userId}/experiences`,
+      {
+        responseType: "application/json",
+      }
+    );
+
+    console.log(experience.data)
+
+
+    const source = JSON.stringify(experience.data);
+
+    const transform = new json2csv.Transform({ fields: ["_id","role", "company", "description", "startDate", "endDate"] })
+
+    const destination = res
+
+    pipeline(source, transform, destination, err => {
+      console.log(err)
+    })
+
+  } catch (error) {
+    next(error);
+    console.log(error);
+  }
+});
+
 experiencesRouter.get("/:userId/experiences/:experienceId", async (req, res, next) => {
   try {
     const experience = await ExperiencesModel.findById(req.params.experienceId).populate({ path: "user" });
@@ -107,41 +139,6 @@ experiencesRouter.post("/:userId/experiences/:experienceId/picture", cloudMulter
   }
 });
 
-// experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
-//   try {
 
-//     console.log(req.params.userId);
-
-//      res.setHeader("Content-Disposition", "attachment; filename=experiences.csv")
-//     const experience = await axios.get(
-//       `http://localhost:3001/profile/${req.params.userId}/experiences`,
-//       {
-//         responseType: "application/json",
-//       }
-//     );
-
-//     console.log(experience.data)
-
-//     res.send(experience.data);
-
-//     const experienceData =
-//       { role: experience.data.role, company: experience.data.company, startDate: experience.data.startDate, endDate: experience.data.endDate, description: experience.data.description, image: experience.data.image }
-
-
-//     const source = experienceData;
-
-//     const transform = new json2csv.Transform({ fields: ["role", "company", "description", "startDate", "endDate"] })
-
-//     const destination = res
-
-//     pipeline(source, transform, destination, err => {
-//       console.log(err)
-//     })
-
-//   } catch (error) {
-//     next(error);
-//     console.log(error);
-//   }
-// });
 
 export default experiencesRouter;
