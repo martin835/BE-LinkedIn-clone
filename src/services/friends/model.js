@@ -2,36 +2,20 @@ import mongoose from "mongoose";
 
 const { Schema, model } = mongoose;
 
-const postSchema = new Schema(
+const friendSchema = new Schema(
   {
-    text: { type: String, required: true },
-    image: { type: String },
-    cloudinary_id: { type: String },
-    profile: {
-      type: mongoose.Types.ObjectId,
-      ref: "Profile",
-      required: true,
-    },
-    comments: [
-      {
-        comment: { type: String, required: true },
-        commentDate: { type: Date, required: true },
-      },
-    ],
-    likes: {
-      default: [],
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Profile",
-          _id: false
-        },
-      ],
-    },
-  },
-  {
-    timestamps: true,
-  }
+    requester: { type: Schema.Types.ObjectId, ref: 'Profile'},
+      recipient: { type: Schema.Types.ObjectId, ref: 'Profile'},
+      status: {
+        type: Number,
+        enums: [
+            0,    //'add friend',
+            1,    //'requested',
+            2,    //'pending',
+            3,    //'friends'
+        ]
+      }
+    }, {timestamps: true}
 );
 
-export default model("friend", Schema);
+export default model("friend", friendSchema);
