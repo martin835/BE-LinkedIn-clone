@@ -63,8 +63,9 @@ postRouter.get("/", async (req, res, next) => {
 
   try {
     const data = await PostModel.find().populate({
-      path: "profile",
-      select: "name surname title image username",
+      path:"comments", populate: 
+      {path: "profile",
+      select: "name surname title image username"}
     })
 
     res.send(data)
@@ -79,8 +80,9 @@ postRouter.get("/:postId", async (req, res, next) => {
 
   try {
     const data = await PostModel.findById(req.params.postId).populate({
-      path: "profile",
-      select: "name surname title image username",
+      path:"comments", populate: 
+      {path: "profile",
+      select: "name surname title image username"}
     })
 
     res.send(data)
