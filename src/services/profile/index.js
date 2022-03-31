@@ -44,7 +44,7 @@ profileRouter.post("/", async (req, res, next) => {
 
 profileRouter.get("/:userId", async (req, res, next) => {
   try {
-    const profile = await profileModel.findById(req.params.userId).populate({ path: "friends", populate: { path: "requester", select: "name surname" } }).populate({ path: "friends", populate: { path: "recipient", select: "name surname" } })
+    const profile = await profileModel.findById(req.params.userId).populate({ path: "friends", populate: { path: "recipient", select: "name surname title image" } })
     if (profile) res.send(profile);
     else {
       next(createError(404, `user with id ${req.params.userId} not found!`));
