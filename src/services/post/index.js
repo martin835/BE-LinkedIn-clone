@@ -66,6 +66,9 @@ postRouter.get("/", async (req, res, next) => {
       path:"comments", populate: 
       {path: "profile",
       select: "name surname title image username"}
+    }).populate({
+      path: "profile",
+      select: "name surname title image username"
     })
 
     res.send(data)
@@ -83,6 +86,9 @@ postRouter.get("/:postId", async (req, res, next) => {
       path:"comments", populate: 
       {path: "profile",
       select: "name surname title image username"}
+    }).populate({
+      path: "profile",
+      select: "name surname title image username"
     })
 
     res.send(data)
