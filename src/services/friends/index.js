@@ -1,6 +1,7 @@
 import express from "express";
 import friendsModel from "./model.js";
 import ProfileModel from "../profile/model.js";
+import profileRouter from "../profile/index.js";
 
 const friendsRouter = express.Router();
 
@@ -11,7 +12,7 @@ friendsRouter.post("/:userA/request/:userB",  async (req, res, next) => {
         requester: req.params.userA,
         recipient: req.params.userB,
         status: 1
-      });
+      })
 
       const newPending = await new friendsModel({
         requester: req.params.userB,
@@ -26,12 +27,12 @@ friendsRouter.post("/:userA/request/:userB",  async (req, res, next) => {
       const updateUserA = await ProfileModel.findByIdAndUpdate(
         req.params.userA ,
         { $push: { friends: newRequest._id }}
-    ).populate({path: "friends"})
+    )
 
     const updateUserB = await ProfileModel.findByIdAndUpdate(
        req.params.userB ,
         { $push: { friends: newPending._id }}
-    ).populate({path: "friends"})
+    )
 
       res.send({newRequest, newPending})
   } catch (error) {
@@ -40,6 +41,64 @@ friendsRouter.post("/:userA/request/:userB",  async (req, res, next) => {
   }
 });
 
+friendsRouter.get("/", async (req, res, next) => {
+    try {
+      const requests = await friendsModel.find()
+      res.send(requests);
+    } catch (error) {
+      next(error);
+      console.log(error);
+    }
+  });
+
+friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
+    try {
+      const updateFriendA = await friendsModel.findOneAndUpdate(
+        {requester: req.params.userA, recipient: req.params.userB},
+        {status: 3},
+        { new: true, runValidators: true }
+      ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
+
+      const updateFriendB = await friendsModel.findOneAndUpdate(
+        {requester: req.params.userB, recipient: req.params.userA},
+        {status: 3},
+        { new: true, runValidators: true }
+      ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
+  
+      res.send({updateFriendA, updateFriendB})
+
+    } catch (error) {
+      next(error);
+      console.log(error);
+    }
+  });
+
+  friendsRouter.delete("/:userA/refuse/:userB", async (req, res, next) => {
+    try {
+
+        const requestA = await friendsModel.findOneAndRemove(
+            { requester: req.params.userA, recipient: req.params.userB }
+        )
+        const requestB = await friendsModel.findOneAndRemove(
+            { recipient: req.params.userA, requester: req.params.userB}
+        )
+
+        const updateProfileA = await ProfileModel.findByIdAndUpdate(
+            req.params.userA,
+            { $pull: { friends: requestA._id }}
+        )
+        const updateProfileB = await ProfileModel.findByIdAndUpdate(
+            req.params.userB,
+            { $pull: { friends: requestB._id }}
+        )
+
+      res.status(204).send()
+
+    } catch (error) {
+      next(error);
+      console.log(error);
+    }
+  });
 
 
 export default friendsRouter;
