@@ -37,8 +37,10 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
-        image: "http://placeimg.com/640/480",
+        image: "",
       });
+
+      // http://placeimg.com/640/480
 
       await newPost.save();
 
