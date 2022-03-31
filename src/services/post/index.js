@@ -43,9 +43,9 @@ postRouter.post("/", cloudinaryUploadPostImage, checkPostSchema, checkValidation
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
-        image: "",
+        image: "http://placeimg.com/640/480",
       })
-      // http://placeimg.com/640/480
+
       await newPost.save()
 
       res.send(newPost)
