@@ -11,13 +11,13 @@ friendsRouter.post("/:userA/request/:userB",  async (req, res, next) => {
       const newRequest = await new friendsModel({
         requester: req.params.userA,
         recipient: req.params.userB,
-        status: 1
+        status: "Requested"
       })
 
       const newPending = await new friendsModel({
         requester: req.params.userB,
         recipient: req.params.userA,
-        status: 2
+        status: "Pending"
       });
 
       await newRequest.save();
@@ -55,13 +55,13 @@ friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
     try {
       const updateFriendA = await friendsModel.findOneAndUpdate(
         {requester: req.params.userA, recipient: req.params.userB},
-        {status: 3},
+        {status: "Friends"},
         { new: true, runValidators: true }
       ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
 
       const updateFriendB = await friendsModel.findOneAndUpdate(
         {requester: req.params.userB, recipient: req.params.userA},
-        {status: 3},
+        {status: "Friends"},
         { new: true, runValidators: true }
       ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
   
