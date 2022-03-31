@@ -22,7 +22,7 @@ const cloudinaryUploader = multer({
 
 profileRouter.get("/", async (req, res, next) => {
   try {
-    const profiles = await profileModel.find();
+    const profiles = await profileModel.find().populate({path:"friends"});
     res.send(profiles);
   } catch (error) {
     next(error);

@@ -33,7 +33,7 @@ friendsRouter.post("/:userA/request/:userB",  async (req, res, next) => {
         { $push: { friends: newPending._id }}
     ).populate({path: "friends"})
 
-      res.send({updateUserA, updateUserB})
+      res.send({newRequest, newPending})
   } catch (error) {
     console.log(error);
     next(error);
