@@ -6,6 +6,9 @@ import { CloudinaryStorage } from "multer-storage-cloudinary";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import ProfileModel from "../profile/model.js";
+import { checkPostSchema, checkCommentSchema } from "./validation.js";
+import { checkValidationResult } from "../experiences/validation.js";
+
 
 const cloudinaryUploadPostImage = multer({
   storage: new CloudinaryStorage({
@@ -19,7 +22,7 @@ const cloudinaryUploadPostImage = multer({
 const postRouter = express.Router();
 
 //1 POST a POST
-postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
+postRouter.post("/", cloudinaryUploadPostImage, checkPostSchema, checkValidationResult, async (req, res, next) => {
   console.log("📨 PING - POST REQUEST");
   try {
     if (req.file) {
@@ -83,7 +86,7 @@ postRouter.get("/:postId", async (req, res, next) => {
 });
 
 //4 Edit a Post
-postRouter.put("/:postId", async (req, res, next) => {
+postRouter.put("/:postId", checkPostSchema, checkValidationResult, async (req, res, next) => {
   console.log("📑 PING - EDIT Post REQUEST");
   try {
     const editedPost = await PostModel.findByIdAndUpdate(
@@ -176,7 +179,7 @@ postRouter.post("/:postId/likes", async (req, res, next) => {
 });
 
 //6  POST a COMMENT to a Post
-postRouter.post("/:postId/comments", async (req, res, next) => {
+postRouter.post("/:postId/comments", checkCommentSchema, checkValidationResult, async (req, res, next) => {
   try {
     const newComment = {
       ...req.body,
@@ -197,10 +200,13 @@ postRouter.post("/:postId/comments", async (req, res, next) => {
   }
 });
 
-//7 GET COMMENTS for  a BlogPost
+//7 GET COMMENTS for a BlogPost
 postRouter.get("/:postId/comments", async (req, res, next) => {
   try {
-    const comments = await PostModel.findById(req.params.postId);
+    const comments = await PostModel.findById(req.params.postId).populate({
+      path: "profile",
+      select: "name surname username image",
+    });;
     if (comments) res.send(comments.comments);
     if (!comments)
       next(
@@ -235,8 +241,8 @@ postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
   }
 });
 
-//9 EDIT a COMMENT in a BlogPost --> fix this
-postRouter.put("/:postId/comments/:commentId", async (req, res, next) => {
+//9 EDIT a COMMENT in a BlogPost
+postRouter.put("/:postId/comments/:commentId", checkCommentSchema, checkValidationResult, async (req, res, next) => {
   try {
     const post = await PostModel.findById(req.params.postId);
     if (post) {
