@@ -20,7 +20,7 @@ const cloudStorageProd = new CloudinaryStorage({
     folder: "M6-Benchmark-experiences",
   },
 })
-const cloudMulterProd = multer({ storage: cloudStorageProd })
+const cloudMulterProd = multer({ storage: cloudStorageProd, limits: { fileSize: 3145728 } })
 
 
 experiencesRouter.get("/:userId/experiences", async (req, res, next) => {
@@ -63,9 +63,6 @@ experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
         responseType: "application/json",
       }
     );
-
-    console.log(experience.data)
-
 
     const source = JSON.stringify(experience.data);
 

@@ -16,13 +16,13 @@ const cloudinaryUploader = multer({
     cloudinary, // search automatically for process.env.CLOUDINARY_URL (looking for Cloudinary credentials)
     params: {
       folder: "usersPics",
-    },
+    }, limits: { fileSize: 3145728 }
   }),
 }).single("image");
 
 profileRouter.get("/", async (req, res, next) => {
   try {
-    const profiles = await profileModel.find().populate({path:"friends", populate: {path: "requester", select:"name surname"}}).populate({ path:"friends", populate: {path: "recipient", select: "name surname"}})
+    const profiles = await profileModel.find().populate({ path: "friends", populate: { path: "requester", select: "name surname" } }).populate({ path: "friends", populate: { path: "recipient", select: "name surname" } })
     res.send(profiles);
   } catch (error) {
     next(error);
@@ -44,7 +44,7 @@ profileRouter.post("/", async (req, res, next) => {
 
 profileRouter.get("/:userId", async (req, res, next) => {
   try {
-    const profile = await profileModel.findById(req.params.userId).populate({path:"friends", populate: {path: "requester", select:"name surname"}}).populate({ path:"friends", populate: {path: "recipient", select: "name surname"}})
+    const profile = await profileModel.findById(req.params.userId).populate({ path: "friends", populate: { path: "requester", select: "name surname" } }).populate({ path: "friends", populate: { path: "recipient", select: "name surname" } })
     if (profile) res.send(profile);
     else {
       next(createError(404, `user with id ${req.params.userId} not found!`));
@@ -156,26 +156,23 @@ profileRouter.get("/:profileId/downloadPDF", async (req, res, next) => {
   }
 });
 
-profileRouter.post(
-  "/:userId/upload",
-  cloudinaryUploader,
-  async (req, res, next) => {
-    try {
-      const user = await profileModel.findByIdAndUpdate(
-        req.params.userId,
-        { image: req.file.path },
-        { new: true }
-      );
+profileRouter.post("/:userId/upload", cloudinaryUploader, async (req, res, next) => {
+  try {
+    const user = await profileModel.findByIdAndUpdate(
+      req.params.userId,
+      { image: req.file.path },
+      { new: true }
+    );
 
-      if (user) {
-        res.send("Uploaded on Cloudinary!");
-      } else {
-        next(createError(404, `user with id ${req.params.userId} not found!`));
-      }
-    } catch (error) {
-      next(error);
+    if (user) {
+      res.send("Uploaded on Cloudinary!");
+    } else {
+      next(createError(404, `user with id ${req.params.userId} not found!`));
     }
+  } catch (error) {
+    next(error);
   }
+}
 );
 
 export default profileRouter;

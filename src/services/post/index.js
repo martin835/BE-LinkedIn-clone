@@ -16,7 +16,7 @@ const cloudinaryUploadPostImage = multer({
     params: {
       folder: "post-covers",
     },
-  }),
+  }), limits: { fileSize: 3145728 }
 }).single("post")
 
 const postRouter = express.Router()
