@@ -12,6 +12,7 @@ const ProfileSchema = new Schema(
     area: { type: String, required: true },
     image: { type: String },
     username: { type: String, unique: true },
+    friends: [{ type: Schema.Types.ObjectId, ref: 'friend'}]
   },
   {
     timestamps: true,
