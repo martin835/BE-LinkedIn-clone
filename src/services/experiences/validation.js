@@ -37,12 +37,12 @@ const experienceSchema = {
             errorMessage: "area validation failed , type must be  string ",
         },
     },
-    image: {
-        in: ["body"],
-        isString: {
-            errorMessage: "image validation failed , type must be  string ",
-        },
-    },
+    // image: {
+    //     in: ["body"],
+    //     isString: {
+    //         errorMessage: "image validation failed , type must be  string ",
+    //     },
+    // },
 };
 
 export const checkExperienceSchema = checkSchema(experienceSchema);

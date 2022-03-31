@@ -210,11 +210,11 @@ postRouter.post("/:postId/comments", checkCommentSchema, checkValidationResult, 
 
 postRouter.get("/:postId/comments", async (req, res, next) => {
   try {
-    const comments = await PostModel.findById(req.params.postId).populate({
-      path: "profile",
-
-      select: "name surname image",
-    })
+    const comments = await PostModel.findById(req.params.postId)
+      .populate({ path: "comments", populate: { path: "comments" } })
+      .populate({
+        path: "comments", populate: { path: "profile", select: "name surname image username " }
+      })
 
     if (comments) res.send(comments.comments)
 
@@ -234,6 +234,10 @@ postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
 
   try {
     const post = await PostModel.findById(req.params.postId)
+      .populate({ path: "comments", populate: { path: "comments" } })
+      .populate({
+        path: "comments", populate: { path: "profile", select: "name surname image username " }
+      })
     if (post) {
       const comment = post.comments.find(
         (comment) => comment._id.toString() === req.params.commentId)
