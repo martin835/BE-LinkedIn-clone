@@ -3,7 +3,7 @@ import Profile from "../profile/model.js";
 
 const { Schema, model } = mongoose;
 
-const postSchema = new Schema(
+const postsSchema = new Schema(
   {
     text: { type: String, required: true },
     image: { type: String },
@@ -41,4 +41,4 @@ const postSchema = new Schema(
   }
 );
 
-export default model("Post", postSchema);
+export default model("Post", postsSchema);

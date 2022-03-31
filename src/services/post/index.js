@@ -1,11 +1,14 @@
-import express from "express"
-import createError from "http-errors"
-import q2m from "query-to-mongo"
-import PostModel from "./model.js"
-import { CloudinaryStorage } from "multer-storage-cloudinary"
-import { v2 as cloudinary } from "cloudinary"
-import multer from "multer"
-import ProfileModel from "../profile/model.js"
+
+import express from "express";
+import createError from "http-errors";
+import q2m from "query-to-mongo";
+import PostModel from "./model.js";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { v2 as cloudinary } from "cloudinary";
+import multer from "multer";
+import ProfileModel from "../profile/model.js";
+import { checkPostSchema, checkCommentSchema } from "./validation.js";
+import { checkValidationResult } from "../experiences/validation.js";
 
 const cloudinaryUploadPostImage = multer({
   storage: new CloudinaryStorage({
@@ -19,10 +22,12 @@ const cloudinaryUploadPostImage = multer({
 const postRouter = express.Router()
 
 //1 POST a POST
-postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
-  console.log("📨 PING - POST REQUEST")
+
+postRouter.post("/", cloudinaryUploadPostImage, checkPostSchema, checkValidationResult, async (req, res, next) => {
+ 
   try {
     if (req.file) {
+      
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
@@ -53,7 +58,7 @@ postRouter.post("/", cloudinaryUploadPostImage, async (req, res, next) => {
 
 //2 Get all POSTS
 postRouter.get("/", async (req, res, next) => {
-  console.log("🪃 PING - GET ALL POSTS REQUEST")
+
   try {
     const data = await PostModel.find().populate({
       path: "profile",
@@ -69,7 +74,7 @@ postRouter.get("/", async (req, res, next) => {
 
 //3 Get One Post
 postRouter.get("/:postId", async (req, res, next) => {
-  console.log("🪃 PING - GET ONE POST REQUEST")
+  
   try {
     const data = await PostModel.findById(req.params.postId).populate({
       path: "profile",
@@ -84,8 +89,9 @@ postRouter.get("/:postId", async (req, res, next) => {
 })
 
 //4 Edit a Post
-postRouter.put("/:postId", async (req, res, next) => {
-  console.log("📑 PING - EDIT Post REQUEST")
+
+postRouter.put("/:postId", checkPostSchema, checkValidationResult, async (req, res, next) => {
+
   try {
     const editedPost = await PostModel.findByIdAndUpdate(
       req.params.postId,
@@ -105,8 +111,9 @@ postRouter.put("/:postId", async (req, res, next) => {
 })
 
 //5 Delete a Post
+
 postRouter.delete("/:postId", async (req, res, next) => {
-  console.log("🧨 PING - DELETE Post REQUEST")
+
   try {
     const postToDelete = await PostModel.findById(req.params.postId)
 
@@ -132,7 +139,7 @@ postRouter.delete("/:postId", async (req, res, next) => {
 //6 Upload Post Cover
 
 postRouter.post("/:postId/uploadPostCover", cloudinaryUploadPostImage, async (req, res, next) => {
-  console.log("📤 PING - Upload Post Cover Image REQUEST")
+
   try {
     const editedPost = await PostModel.findByIdAndUpdate(
       req.params.postId,
@@ -149,6 +156,7 @@ postRouter.post("/:postId/uploadPostCover", cloudinaryUploadPostImage, async (re
 )
 
 postRouter.post("/:postId/likes", async (req, res, next) => {
+  
   try {
     const { id } = req.body
     const isLiked = await PostModel.findOne({
@@ -173,8 +181,10 @@ postRouter.post("/:postId/likes", async (req, res, next) => {
   }
 })
 
-//6 POST a COMMENT to a Post
-postRouter.post("/:postId/comments", async (req, res, next) => {
+
+//6  POST a COMMENT to a Post
+postRouter.post("/:postId/comments", checkCommentSchema, checkValidationResult, async (req, res, next) => {
+
   try {
     const newComment = {
       ...req.body,
@@ -195,15 +205,19 @@ postRouter.post("/:postId/comments", async (req, res, next) => {
   }
 })
 
+
 //7 GET COMMENTS for a Post
+
 postRouter.get("/:postId/comments", async (req, res, next) => {
   try {
     const comments = await PostModel.findById(req.params.postId).populate({
       path: "profile",
+
       select: "name surname image",
     })
 
     if (comments) res.send(comments.comments)
+
     if (!comments)
       next(
         createError(404, `Blog post with id ${req.params.postId} not found!`)
@@ -215,7 +229,9 @@ postRouter.get("/:postId/comments", async (req, res, next) => {
 })
 
 //8 GET ONE COMMENT from a Post
+
 postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
+  
   try {
     const post = await PostModel.findById(req.params.postId)
     if (post) {
@@ -236,8 +252,9 @@ postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
   }
 })
 
-//9 EDIT a COMMENT in a Post 
-postRouter.put("/:postId/comments/:commentId", async (req, res, next) => {
+//9 EDIT a COMMENT in a Post
+postRouter.put("/:postId/comments/:commentId", checkCommentSchema, checkValidationResult, async (req, res, next) => {
+
   try {
     const post = await PostModel.findById(req.params.postId)
     if (post) {
@@ -271,7 +288,9 @@ postRouter.put("/:postId/comments/:commentId", async (req, res, next) => {
 })
 
 //10 DELETE A COMMENT in a Post
+
 postRouter.delete("/:postId/comments/:commentId", async (req, res, next) => {
+  
   try {
     const post = await PostModel.findByIdAndUpdate(
       req.params.postId,

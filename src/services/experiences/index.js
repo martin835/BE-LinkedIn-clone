@@ -9,6 +9,7 @@ import multer from "multer";
 import { pipeline } from "stream";
 import json2csv from 'json2csv';
 import axios from "axios";
+import { checkExperienceSchema, checkValidationResult } from "./validation.js";
 
 
 const experiencesRouter = express.Router();
@@ -35,7 +36,7 @@ experiencesRouter.get("/:userId/experiences", async (req, res, next) => {
   }
 });
 
-experiencesRouter.post("/:userId/experiences", async (req, res, next) => {
+experiencesRouter.post("/:userId/experiences", checkExperienceSchema, checkValidationResult, async (req, res, next) => {
   try {
     console.log("📨 PING - POST REQUEST");
 
@@ -55,7 +56,7 @@ experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
 
     console.log(req.params.userId);
 
-     res.setHeader("Content-Disposition", "attachment; filename=experiences.csv")
+    res.setHeader("Content-Disposition", "attachment; filename=experiences.csv")
     const experience = await axios.get(
       `http://localhost:3001/profile/${req.params.userId}/experiences`,
       {
@@ -68,7 +69,7 @@ experiencesRouter.get("/:userId/experiences/CSV", async (req, res, next) => {
 
     const source = JSON.stringify(experience.data);
 
-    const transform = new json2csv.Transform({ fields: ["_id","role", "company", "description", "startDate", "endDate"] })
+    const transform = new json2csv.Transform({ fields: ["_id", "role", "company", "description", "startDate", "endDate"] })
 
     const destination = res
 
@@ -95,7 +96,7 @@ experiencesRouter.get("/:userId/experiences/:experienceId", async (req, res, nex
   }
 });
 
-experiencesRouter.put("/:userId/experiences/:experienceId", async (req, res, next) => {
+experiencesRouter.put("/:userId/experiences/:experienceId", checkExperienceSchema, checkValidationResult, async (req, res, next) => {
   try {
     const updatedExperience = await ExperiencesModel.findByIdAndUpdate(
       req.params.experienceId,
