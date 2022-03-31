@@ -15,7 +15,10 @@ const friendSchema = new Schema(
             3,    //'friends'
         ]
       }
-    }, {timestamps: true}
-);
+    },
+    {
+        timestamps: true
+    }
+)
 
 export default model("friend", friendSchema);
