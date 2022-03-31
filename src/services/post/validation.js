@@ -13,12 +13,6 @@ const postSchema = {
             errorMessage: "image validation failed , type must be string ",
         },
     },
-    cloudinary_id: {
-        in: ["body"],
-        isString: {
-            errorMessage: "cloudinary_id validation failed , type must be string ",
-        },
-    },
     profile: {
         in: ["body"],
         isMongoId: {
