@@ -24,10 +24,10 @@ const postRouter = express.Router()
 //1 POST a POST
 
 postRouter.post("/", cloudinaryUploadPostImage, checkPostSchema, checkValidationResult, async (req, res, next) => {
- 
+
   try {
     if (req.file) {
-      
+
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
@@ -74,7 +74,7 @@ postRouter.get("/", async (req, res, next) => {
 
 //3 Get One Post
 postRouter.get("/:postId", async (req, res, next) => {
-  
+
   try {
     const data = await PostModel.findById(req.params.postId).populate({
       path: "profile",
@@ -156,7 +156,7 @@ postRouter.post("/:postId/uploadPostCover", cloudinaryUploadPostImage, async (re
 )
 
 postRouter.post("/:postId/likes", async (req, res, next) => {
-  
+
   try {
     const { id } = req.body
     const isLiked = await PostModel.findOne({
@@ -210,11 +210,11 @@ postRouter.post("/:postId/comments", checkCommentSchema, checkValidationResult, 
 
 postRouter.get("/:postId/comments", async (req, res, next) => {
   try {
-    const comments = await PostModel.findById(req.params.postId).populate({
-      path: "profile",
-
-      select: "name surname image",
-    })
+    const comments = await PostModel.findById(req.params.postId)
+      .populate({ path: "comments", populate: { path: "comments" } })
+      .populate({
+        path: "comments", populate: { path: "profile", select: "name surname image username " }
+      })
 
     if (comments) res.send(comments.comments)
 
@@ -231,9 +231,13 @@ postRouter.get("/:postId/comments", async (req, res, next) => {
 //8 GET ONE COMMENT from a Post
 
 postRouter.get("/:postId/comments/:commentId", async (req, res, next) => {
-  
+
   try {
     const post = await PostModel.findById(req.params.postId)
+      .populate({ path: "comments", populate: { path: "comments" } })
+      .populate({
+        path: "comments", populate: { path: "profile", select: "name surname image username " }
+      })
     if (post) {
       const comment = post.comments.find(
         (comment) => comment._id.toString() === req.params.commentId)
@@ -290,7 +294,7 @@ postRouter.put("/:postId/comments/:commentId", checkCommentSchema, checkValidati
 //10 DELETE A COMMENT in a Post
 
 postRouter.delete("/:postId/comments/:commentId", async (req, res, next) => {
-  
+
   try {
     const post = await PostModel.findByIdAndUpdate(
       req.params.postId,
