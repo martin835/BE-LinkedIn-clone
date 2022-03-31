@@ -6,6 +6,8 @@ import cors from "cors";
 import postRouter from "./services/post/index.js";
 import experiencesRouter from "./services/experiences/index.js";
 import profileRouter from "./services/profile/index.js";
+import friendsRouter from "./services/friends/index.js";
+
 
 import {
   badRequestHandler,
@@ -40,6 +42,8 @@ server.use(express.json());
 //***********************************Endpoints*********************************************************/
 server.use("/posts", postRouter);
 server.use("/profile", [profileRouter, experiencesRouter]);
+server.use("/friend", friendsRouter);
+
 
 //***********************************Error handlers****************************************************/
 server.use(badRequestHandler);
