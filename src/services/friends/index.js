@@ -49,7 +49,9 @@ friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
         {requester: req.params.userA, recipient: req.params.userB},
         {status: "Friends"},
         { new: true, runValidators: true }
-      ).populate({path: "requester", select:"name surname image title"}).populate({path: "recipient", select: "name surname image title"})
+
+      ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
+
   
       res.send({updateFriendship})
 
@@ -62,17 +64,19 @@ friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
   friendsRouter.delete("/:userA/refuse/:userB", async (req, res, next) => {
     try {
 
-        const requestA = await friendsModel.findOneAndRemove(
+        const request = await friendsModel.findOneAndRemove(
             { requester: req.params.userA, recipient: req.params.userB }
         )
 
         const updateProfileA = await ProfileModel.findByIdAndUpdate(
             req.params.userA,
-            { $pull: { friends: requestA._id }}
+            { $pull: { friends: request._id }}
         )
         const updateProfileB = await ProfileModel.findByIdAndUpdate(
             req.params.userB,
-            { $pull: { friends: requestA._id }}
+
+            { $pull: { friends: request._id }}
+
         )
 
       res.status(204).send()
