@@ -49,7 +49,9 @@ friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
         {requester: req.params.userA, recipient: req.params.userB},
         {status: "Friends"},
         { new: true, runValidators: true }
+
       ).populate({path: "requester", select:"name surname"}).populate({path: "recipient", select: "name surname"})
+
   
       res.send({updateFriendship})
 
@@ -72,7 +74,9 @@ friendsRouter.put("/:userA/accept/:userB", async (req, res, next) => {
         )
         const updateProfileB = await ProfileModel.findByIdAndUpdate(
             req.params.userB,
+
             { $pull: { friends: request._id }}
+
         )
 
       res.status(204).send()
