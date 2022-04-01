@@ -1,7 +1,6 @@
 import express from "express";
 import friendsModel from "./model.js";
 import ProfileModel from "../profile/model.js";
-import profileRouter from "../profile/index.js";
 
 const friendsRouter = express.Router();
 

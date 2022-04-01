@@ -7,6 +7,7 @@ import postRouter from "./services/post/index.js";
 import experiencesRouter from "./services/experiences/index.js";
 import profileRouter from "./services/profile/index.js";
 import friendsRouter from "./services/friends/index.js";
+import messagesRouter from "./services/messages/index.js";
 
 
 import {
@@ -30,6 +31,7 @@ server.use(express.json());
 server.use("/posts", postRouter);
 server.use("/profile", [profileRouter, experiencesRouter]);
 server.use("/friend", friendsRouter);
+server.use("/message", messagesRouter);
 
 
 
