@@ -22,7 +22,7 @@ const cloudinaryUploader = multer({
 
 profileRouter.get("/", async (req, res, next) => {
   try {
-    const profiles = await profileModel.find().populate({ path: "friends", populate: { path: "recipient", select: "name surname title image" } })
+    const profiles = await profileModel.find().populate({ path: "friends", populate: { path: "recipient", select: "name surname title image" } }).populate({ path: "friends", populate: { path: "requester", select: "name surname title image" } })
     res.send(profiles);
   } catch (error) {
     next(error);
@@ -44,7 +44,7 @@ profileRouter.post("/", async (req, res, next) => {
 
 profileRouter.get("/:userId", async (req, res, next) => {
   try {
-    const profile = await profileModel.findById(req.params.userId).populate({ path: "friends", populate: { path: "recipient", select: "name surname title image" } })
+    const profile = await profileModel.findById(req.params.userId).populate({ path: "friends", populate: { path: "recipient", select: "name surname title image" } }).populate({ path: "friends", populate: { path: "requester", select: "name surname title image" } })
     if (profile) res.send(profile);
     else {
       next(createError(404, `user with id ${req.params.userId} not found!`));
