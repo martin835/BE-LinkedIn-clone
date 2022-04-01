@@ -9,7 +9,6 @@ const friendSchema = new Schema(
       status: {
         type: String,
         enums: [
-           "Requested",
             "Pending",    
             "Friends",   
         ]
