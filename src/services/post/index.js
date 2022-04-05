@@ -43,8 +43,10 @@ postRouter.post("/", cloudinaryUploadPostImage, checkPostSchema, checkValidation
       const newPost = new PostModel({
         text: req.body.text,
         profile: req.body.profile,
-        image: "http://placeimg.com/640/480",
-      })
+        image: "",
+      });
+
+      // http://placeimg.com/640/480
 
       await newPost.save()
 
@@ -61,8 +63,12 @@ postRouter.get("/", async (req, res, next) => {
 
   try {
     const data = await PostModel.find().populate({
+      path:"comments", populate: 
+      {path: "profile",
+      select: "name surname title image username"}
+    }).populate({
       path: "profile",
-      select: "name surname title image username",
+      select: "name surname title image username"
     })
 
     res.send(data)
@@ -77,8 +83,12 @@ postRouter.get("/:postId", async (req, res, next) => {
 
   try {
     const data = await PostModel.findById(req.params.postId).populate({
+      path:"comments", populate: 
+      {path: "profile",
+      select: "name surname title image username"}
+    }).populate({
       path: "profile",
-      select: "name surname title image username",
+      select: "name surname title image username"
     })
 
     res.send(data)
